@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { layoutEntries } from '../src/layout.js';
+import { layoutEntries, clampToBoard, applyPins } from '../src/layout.js';
 
 const RADIUS = 85;
 const SEEDS = [1, 7, 42, 0xdeadbeef];
@@ -72,6 +72,45 @@ test('the same seed gives the same layout', () => {
 
 test('different seeds give different layouts', () => {
   assert.notDeepEqual(layoutEntries(10, RADIUS, 1), layoutEntries(10, RADIUS, 2));
+});
+
+test('clampToBoard leaves a card that already fits where it is', () => {
+  assert.deepEqual(clampToBoard({ x: 10, y: -20 }, 20, RADIUS), { x: 10, y: -20 });
+});
+
+test('clampToBoard pulls a card dragged off the board back inside, in the same direction', () => {
+  const size = 20;
+  const { x, y } = clampToBoard({ x: 300, y: -400 }, size, RADIUS);
+  for (const tilt of [-8, 0, 8]) {
+    for (const corner of corners({ x, y, size, tilt })) {
+      assert.ok(Math.hypot(corner.x, corner.y) <= RADIUS + EPSILON, `corner outside the board at tilt ${tilt}`);
+    }
+  }
+  assert.ok(Math.abs(Math.atan2(y, x) - Math.atan2(-400, 300)) < 1e-9, 'direction must be preserved');
+});
+
+test('applyPins moves pinned cards to their saved spot and leaves the rest alone', () => {
+  const cards = layoutEntries(3, RADIUS, 5);
+  const entries = [{ id: 'a' }, { id: 'b', pos: { x: 12, y: -7, z: 1 } }, { id: 'c' }];
+  const placed = applyPins(cards, entries, RADIUS);
+  assert.deepEqual(placed[0], cards[0]);
+  assert.deepEqual(placed[1], { ...cards[1], x: 12, y: -7 });
+  assert.deepEqual(placed[2], cards[2]);
+});
+
+test('applyPins keeps a pinned card inside the board when cards grow', () => {
+  const cards = layoutEntries(2, RADIUS, 5); // few entries, so big cards
+  const [pinned] = applyPins(cards, [{ id: 'a', pos: { x: 84, y: 0, z: 1 } }, { id: 'b' }], RADIUS);
+  for (const corner of corners(pinned)) {
+    assert.ok(Math.hypot(corner.x, corner.y) <= RADIUS + EPSILON, 'pinned card pokes out of the board');
+  }
+});
+
+test('applyPins does not mutate the auto layout', () => {
+  const cards = layoutEntries(1, RADIUS, 5);
+  const before = structuredClone(cards);
+  applyPins(cards, [{ id: 'a', pos: { x: 1, y: 1, z: 1 } }], RADIUS);
+  assert.deepEqual(cards, before);
 });
 
 test('cards shrink as the board fills but stay readable', () => {

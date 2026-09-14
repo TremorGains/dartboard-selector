@@ -78,6 +78,24 @@ test('unknown entry fields are stripped', () => {
   assert.deepEqual(parseState(json).entries, [text('a')]);
 });
 
+test('a dragged position round-trips with its entry', () => {
+  const storage = createMemoryStorage();
+  const state = { entries: [{ ...text('a'), pos: { x: 12.5, y: -30, z: 3 } }, text('b')], muted: false, layoutSeed: 7 };
+  saveState(storage, state);
+  assert.deepEqual(loadState(storage), state);
+});
+
+test('an invalid position is dropped but its entry is kept', () => {
+  const bad = [null, 'x', { x: 1, y: 2 }, { x: '1', y: 2, z: 1 }, { x: 1, y: null, z: 1 }, { x: 1, y: 2, z: 0 }, { x: 1, y: 2, z: 1.5 }];
+  const json = JSON.stringify({ entries: bad.map((pos, i) => ({ ...text(`e${i}`), pos })), muted: false, layoutSeed: 1 });
+  assert.deepEqual(parseState(json).entries, bad.map((_, i) => text(`e${i}`)));
+});
+
+test('unknown position fields are stripped', () => {
+  const json = JSON.stringify({ entries: [{ ...text('a'), pos: { x: 1, y: 2, z: 1, extra: true } }], muted: false, layoutSeed: 1 });
+  assert.deepEqual(parseState(json).entries, [{ ...text('a'), pos: { x: 1, y: 2, z: 1 } }]);
+});
+
 test('bad settings fall back to defaults', () => {
   for (const layoutSeed of [-1, 1.5, '3', 2 ** 32, null]) {
     const state = parseState(JSON.stringify({ entries: [], muted: 'yes', layoutSeed }));

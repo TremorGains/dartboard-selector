@@ -35,3 +35,14 @@ export function addEntries(existing, additions) {
   const accepted = additions.slice(0, room);
   return { entries: [...existing, ...accepted], dropped: additions.length - accepted.length };
 }
+
+/** Pins one entry where its card was dropped, stacked above every other pinned entry. */
+export function pinEntry(entries, id, { x, y }) {
+  const z = 1 + Math.max(0, ...entries.map((entry) => entry.pos?.z ?? 0));
+  return entries.map((entry) => (entry.id === id ? { ...entry, pos: { x, y, z } } : entry));
+}
+
+/** Drops every manual placement, so the automatic layout applies to all entries again. */
+export function clearPins(entries) {
+  return entries.map(({ pos, ...entry }) => entry);
+}

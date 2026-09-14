@@ -38,6 +38,26 @@ export function layoutEntries(count, radius, seed) {
   }));
 }
 
+/** Pulls a card's centre back so the whole card, at any tilt, stays inside `radius`. */
+export function clampToBoard({ x, y }, size, radius) {
+  const reach = radius - size * Math.SQRT1_2; // centre limit for the card's circumscribed circle
+  if (reach <= 0) return { x: 0, y: 0 };
+  const distance = Math.hypot(x, y);
+  if (distance <= reach) return { x, y };
+  return { x: (x / distance) * reach, y: (y / distance) * reach };
+}
+
+/**
+ * Moves the cards of dragged entries (those with `pos`) to where they were dropped,
+ * kept inside the board. Dragged cards may overlap others — that's the user's choice.
+ */
+export function applyPins(cards, entries, radius) {
+  return cards.map((card, i) => {
+    const pos = entries[i]?.pos;
+    return pos ? { ...card, ...clampToBoard(pos, card.size, radius) } : card;
+  });
+}
+
 /** Largest card size whose grid has at least `count` cells inside the board. */
 function fitGrid(count, radius) {
   let size = radius * MAX_SIZE_FRACTION;

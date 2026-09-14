@@ -9,6 +9,8 @@ import {
   makeImageEntry,
   labelFromFilename,
   addEntries,
+  pinEntry,
+  clearPins,
 } from '../src/entries.js';
 
 test('parseTextEntries trims lines and skips blanks', () => {
@@ -68,6 +70,27 @@ test('addEntries stops at MAX_ENTRIES and reports the rest', () => {
   assert.equal(result.entries.length, 50);
   assert.equal(result.dropped, 3);
   assert.equal(existing.length, 48, 'must not mutate the input');
+});
+
+test('pinEntry places the entry where it was dropped, above every other pinned entry', () => {
+  const entries = [{ ...makeTextEntry('a'), pos: { x: 0, y: 0, z: 4 } }, makeTextEntry('b'), makeTextEntry('c')];
+  const result = pinEntry(entries, entries[1].id, { x: 10, y: -5 });
+  assert.deepEqual(result[1], { ...entries[1], pos: { x: 10, y: -5, z: 5 } });
+  assert.equal(result[0], entries[0]);
+  assert.equal(result[2], entries[2]);
+  assert.equal('pos' in entries[1], false, 'must not mutate the input');
+});
+
+test('pinEntry starts stacking at 1 when nothing is pinned yet', () => {
+  const entries = [makeTextEntry('a')];
+  assert.deepEqual(pinEntry(entries, entries[0].id, { x: 1, y: 2 })[0].pos, { x: 1, y: 2, z: 1 });
+});
+
+test('clearPins removes every saved position and keeps the entries', () => {
+  const entries = [{ ...makeTextEntry('a'), pos: { x: 1, y: 2, z: 1 } }, makeTextEntry('b')];
+  const result = clearPins(entries);
+  assert.deepEqual(result, [{ id: entries[0].id, type: 'text', label: 'a' }, entries[1]]);
+  assert.ok('pos' in entries[0], 'must not mutate the input');
 });
 
 test('addEntries on a full board drops everything', () => {

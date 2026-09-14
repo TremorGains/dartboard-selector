@@ -19,8 +19,22 @@ function isValidEntry(entry) {
   return false;
 }
 
-function cleanEntry({ id, type, label, imageId }) {
-  return type === 'image' ? { id, type, label, imageId } : { id, type, label };
+// A dragged card's centre in board units, plus its stacking order.
+function isValidPos(pos) {
+  return (
+    pos !== null &&
+    typeof pos === 'object' &&
+    Number.isFinite(pos.x) &&
+    Number.isFinite(pos.y) &&
+    Number.isInteger(pos.z) &&
+    pos.z >= 1
+  );
+}
+
+function cleanEntry({ id, type, label, imageId, pos }) {
+  const entry = type === 'image' ? { id, type, label, imageId } : { id, type, label };
+  if (isValidPos(pos)) entry.pos = { x: pos.x, y: pos.y, z: pos.z };
+  return entry;
 }
 
 function isValidSeed(seed) {
