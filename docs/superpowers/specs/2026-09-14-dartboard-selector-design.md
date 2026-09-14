@@ -13,7 +13,7 @@ in and sticks into one entry, selecting it.
 
 | Topic | Decision |
 |---|---|
-| Hosting | Static site, no backend. Runs from GitHub Pages or any static host; locally via `npx serve` / `python -m http.server` (ES modules do not load from `file://`). |
+| Hosting | Static site, no backend. Public repo `TremorGains/dartboard-selector`, served by GitHub Pages from `main` at the repo root (`https://tremorgains.github.io/dartboard-selector/`). All asset paths are relative so the `/dartboard-selector/` subpath works. Locally via `npx serve` / `python -m http.server` (ES modules do not load from `file://`). |
 | Selection fairness | Winner chosen uniformly at random first; the dart then animates to a point on that entry's card. Position and size never affect odds. |
 | Board style | Classic round dartboard (rings and segments) drawn in SVG, with entries shown as small cards/photos pinned on top. |
 | Placement | Auto-arranged, non-overlapping; a **Shuffle** button re-scatters. No drag-to-place. |
