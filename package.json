@@ -1,0 +1,8 @@
+{
+  "name": "dartboard-selector",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
