@@ -2,7 +2,11 @@
 // Board units: the SVG viewBox spans -100..100 on both axes, so a board-unit
 // coordinate u sits at CSS percentage (u + 100) / 2 of the board's width.
 
+import { clampToBoard } from './layout.js';
+
 export const PLAYABLE_RADIUS = 85;
+
+const DRAG_THRESHOLD_PX = 4; // smaller pointer moves count as a click, not a drag
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
@@ -15,17 +19,68 @@ export function toPercent(u) {
   return (u + 100) / 2;
 }
 
-export function createBoard(container) {
+/**
+ * `canDrag()` says whether cards may be moved right now; `onMove(index, point)` is called
+ * when a card is dropped, with its new centre in board units (already kept inside the board).
+ */
+export function createBoard(container, { canDrag = () => true, onMove = () => {} } = {}) {
   const cardsLayer = el('div', 'cards');
   const empty = el('p', 'board-empty');
   empty.textContent = 'Add names or pictures to pin them here';
   const dartLayer = el('div', 'dart-layer');
   container.append(buildDartboardSvg(), cardsLayer, empty, dartLayer);
   let cardEls = [];
+  let slots = [];
+
+  cardsLayer.addEventListener('pointerdown', (event) => {
+    const card = event.target.closest('.card');
+    if (!card || !event.isPrimary || event.button !== 0 || !canDrag()) return;
+    event.preventDefault(); // no text selection or native image drag
+    dragCard(card, cardEls.indexOf(card), event);
+  });
+
+  function dragCard(card, index, start) {
+    const slot = slots[index];
+    const rect = container.getBoundingClientRect();
+    const toBoard = (e) => ({
+      x: ((e.clientX - rect.left) / rect.width) * 200 - 100,
+      y: ((e.clientY - rect.top) / rect.height) * 200 - 100,
+    });
+    const grab = toBoard(start);
+    const offset = { x: slot.x - grab.x, y: slot.y - grab.y };
+    let dropAt = null;
+
+    const place = ({ x, y }) => {
+      card.style.left = `${toPercent(x)}%`;
+      card.style.top = `${toPercent(y)}%`;
+    };
+    const onPointerMove = (e) => {
+      if (!dropAt && Math.hypot(e.clientX - start.clientX, e.clientY - start.clientY) < DRAG_THRESHOLD_PX) return;
+      card.classList.add('is-dragging');
+      const p = toBoard(e);
+      dropAt = clampToBoard({ x: p.x + offset.x, y: p.y + offset.y }, slot.size, PLAYABLE_RADIUS);
+      place(dropAt);
+    };
+    const onPointerEnd = (e) => {
+      card.removeEventListener('pointermove', onPointerMove);
+      card.removeEventListener('pointerup', onPointerEnd);
+      card.removeEventListener('pointercancel', onPointerEnd);
+      card.classList.remove('is-dragging');
+      if (!dropAt) return;
+      if (e.type === 'pointerup') onMove(index, dropAt);
+      else place(slot); // cancelled: snap back
+    };
+
+    card.setPointerCapture(start.pointerId);
+    card.addEventListener('pointermove', onPointerMove);
+    card.addEventListener('pointerup', onPointerEnd);
+    card.addEventListener('pointercancel', onPointerEnd);
+  }
 
   return {
     dartLayer,
     render(entries, layout, imageUrlFor) {
+      slots = layout;
       cardEls = entries.map((entry, i) => buildCard(entry, layout[i], imageUrlFor(entry)));
       cardsLayer.replaceChildren(...cardEls);
       empty.hidden = entries.length > 0;
@@ -54,6 +109,7 @@ function buildCard(entry, slot, imageUrl) {
   card.style.top = `${toPercent(slot.y)}%`;
   card.style.setProperty('--s', String(slot.size / 2)); // side as % of board width
   card.style.setProperty('--tilt', `${slot.tilt}deg`);
+  if (entry.pos) card.style.setProperty('--z', String(entry.pos.z)); // dragged cards stack in drop order
   card.title = entry.label;
   if (entry.type === 'image' && imageUrl) {
     const img = el('img');

@@ -1,6 +1,6 @@
 import { cryptoUint32, newId } from './random.js';
 import { pickWinner, pickLandingPoint } from './picker.js';
-import { layoutEntries } from './layout.js';
+import { layoutEntries, applyPins } from './layout.js';
 import {
   MAX_ENTRIES,
   parseTextEntries,
@@ -8,6 +8,8 @@ import {
   makeImageEntry,
   labelFromFilename,
   addEntries,
+  pinEntry,
+  clearPins,
 } from './entries.js';
 import { loadState, saveState, hydrateImages, browserStorage } from './store.js';
 import { openImageStore } from './image-store.js';
@@ -32,7 +34,10 @@ let layout = [];
 let busy = false; // true while a dart is in flight, the reveal is open, or pictures are processing
 let warnedNoImageStore = false;
 
-const board = createBoard(document.getElementById('board'));
+const board = createBoard(document.getElementById('board'), {
+  canDrag: () => !busy,
+  onMove: moveEntry,
+});
 const panel = createPanel({
   onAddText: addText,
   onAddFiles: addFiles,
@@ -65,7 +70,8 @@ function persist() {
 /** Lays the cards out again after the entries or the seed change. */
 function relayout() {
   clearDarts(board.dartLayer);
-  layout = layoutEntries(state.entries.length, PLAYABLE_RADIUS, state.layoutSeed);
+  const auto = layoutEntries(state.entries.length, PLAYABLE_RADIUS, state.layoutSeed);
+  layout = applyPins(auto, state.entries, PLAYABLE_RADIUS);
   board.render(state.entries, layout, imageUrlFor);
   panel.render(state.entries, imageUrlFor);
   updateControls();
@@ -164,8 +170,14 @@ function clearAll() {
   setEntries([]);
 }
 
+/** A card was dragged and dropped at `point` (board units). */
+function moveEntry(index, point) {
+  setEntries(pinEntry(state.entries, state.entries[index].id, point));
+}
+
+/** Re-scatters every card, including ones the user placed by hand. */
 function shuffle() {
-  state = { ...state, layoutSeed: cryptoUint32() };
+  state = { ...state, entries: clearPins(state.entries), layoutSeed: cryptoUint32() };
   persist();
   relayout();
 }

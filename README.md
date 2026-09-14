@@ -8,7 +8,7 @@ Pin names or pictures to a dartboard, throw a dart, and it picks one — an alte
 
 - Type entries (one per line) and press **Add**, or use **Add pictures**. Up to 50 entries in total, names and pictures together.
 - **Throw dart** — every entry has exactly the same chance, wherever its card sits.
-- **Shuffle** re-scatters the cards. **Mute** turns the sound effects off.
+- Drag a card to move it anywhere inside the scoring area — it stays put until you **Shuffle**, which re-scatters every card. **Mute** turns the sound effects off.
 - In the reveal, **Remove & close** takes the winner off the board, which is handy for drawing an order.
 
 Everything stays in your browser (localStorage and IndexedDB). Nothing is uploaded anywhere.
