@@ -226,7 +226,7 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 
 /* ---------- Toasts ---------- */
 .toasts {
-  position: fixed; left: 50%; bottom: 20px; z-index: 10;
+  position: fixed; left: 50%; top: 20px; z-index: 10;
   display: flex; flex-direction: column; gap: 8px;
   width: min(92vw, 420px);
   translate: -50% 0;
@@ -235,12 +235,12 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 .toast {
   padding: 10px 14px;
   background: #0d130f; color: var(--text);
-  border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 8px;
+  border: 1px solid rgb(242 193 78 / 0.45); border-radius: 8px;
   box-shadow: 0 10px 30px rgb(0 0 0 / 0.4);
   font-size: 14px;
   animation: toast-in 200ms ease-out;
 }
-@keyframes toast-in { from { opacity: 0; translate: 0 8px; } }
+@keyframes toast-in { from { opacity: 0; translate: 0 -8px; } }
 
 /* ---------- Small screens & reduced motion ---------- */
 @media (max-width: 860px) {
