@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dartboard Selector</title>
+  <meta name="description" content="Pin names or pictures to a dartboard and throw a dart to pick one.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AF%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <main class="app">
+    <section class="stage" aria-label="Dartboard">
+      <div class="board-wrap" id="board"></div>
+      <div class="controls">
+        <button id="throw" class="btn btn-primary btn-throw" type="button" disabled>Throw dart</button>
+        <button id="shuffle" class="btn" type="button" disabled>Shuffle</button>
+        <button id="mute" class="btn" type="button" aria-pressed="false">Mute</button>
+      </div>
+    </section>
+
+    <aside class="panel" aria-labelledby="app-title">
+      <h1 id="app-title">Dartboard <span>Selector</span></h1>
+      <p class="hint">Pin names or pictures, then throw a dart to pick one.</p>
+      <div id="panel-controls" class="panel-controls">
+        <label class="field-label" for="entry-text">Add entries — one per line</label>
+        <textarea id="entry-text" rows="4" placeholder="Alice&#10;Bob&#10;Charlie"></textarea>
+        <div class="row">
+          <button id="add-text" class="btn btn-primary" type="button">Add</button>
+          <button id="pick-pictures" class="btn" type="button">Add pictures</button>
+          <input id="add-pictures" type="file" accept="image/*" multiple hidden>
+        </div>
+        <p class="hint">Tip: Ctrl + Enter adds the list.</p>
+        <div class="list-header">
+          <span id="entry-count">0 / 50</span>
+          <button id="clear-all" class="link-btn" type="button">Clear all</button>
+        </div>
+        <ul id="entry-list" class="entry-list" aria-label="Entries on the board"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <dialog id="reveal" class="reveal" aria-labelledby="reveal-title">
+    <div class="confetti" aria-hidden="true"></div>
+    <form method="dialog" class="reveal-card">
+      <p id="reveal-title" class="reveal-kicker">The dart landed on</p>
+      <div id="reveal-content"></div>
+      <div class="row">
+        <button class="btn" value="remove">Remove &amp; close</button>
+        <button class="btn btn-primary" value="close" autofocus>Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+</body>
+</html>
