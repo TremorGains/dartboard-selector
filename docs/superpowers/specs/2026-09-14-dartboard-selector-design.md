@@ -66,11 +66,13 @@ Entry = {
 
 ## Layout
 
-- Entries are placed on a Vogel sunflower spiral (golden angle ≈ 137.5°) within ~85% of
-  the board radius.
-- Card size is derived from entry count so neighbouring cards never overlap.
-- The seed deterministically controls: entry order permutation, spiral rotation offset,
-  small positional jitter (bounded so no overlap is introduced), and card tilt (±8°).
+- Entries are square cards on a square grid clipped to a circle of 85% of the board
+  radius. (A Vogel sunflower spiral was the first idea; prototyping showed it made cards
+  about 1.5× smaller — e.g. 48px vs 71px per card for 20 entries on a 600px board.)
+- Card size is the largest for which the grid has enough cells inside that circle, capped
+  at half its radius, so neighbouring cards never overlap.
+- The seed deterministically controls: which grid cells are used and which entry goes
+  where, small positional jitter (bounded so no overlap is introduced), and card tilt (±8°).
 - **Shuffle** generates a new seed and persists it, so reloads keep the same arrangement.
 - Adding or removing entries re-runs layout with the current seed.
 
