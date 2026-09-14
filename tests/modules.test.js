@@ -10,6 +10,8 @@ const MODULES = {
   '../src/dart.js': ['throwDart', 'clearDarts', 'FLIGHT_MS'],
   '../src/sound.js': ['createSound'],
   '../src/reveal.js': ['createReveal'],
+  '../src/images.js': ['isImageFile', 'resizeImage'],
+  '../src/image-store.js': ['openImageStore'],
 };
 
 for (const [path, names] of Object.entries(MODULES)) {
@@ -36,4 +38,17 @@ test('sound is a silent no-op without Web Audio', async () => {
   });
   sound.setMuted(true);
   assert.equal(sound.muted, true);
+});
+
+test('isImageFile accepts only image MIME types', async () => {
+  const { isImageFile } = await import('../src/images.js');
+  assert.equal(isImageFile({ type: 'image/png' }), true);
+  assert.equal(isImageFile({ type: 'image/jpeg' }), true);
+  assert.equal(isImageFile({ type: 'text/plain' }), false);
+  assert.equal(isImageFile({ type: '' }), false);
+});
+
+test('openImageStore resolves null where IndexedDB is unavailable', async () => {
+  const { openImageStore } = await import('../src/image-store.js');
+  assert.equal(await openImageStore(), null);
 });

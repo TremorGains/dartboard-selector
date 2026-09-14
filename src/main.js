@@ -1,8 +1,17 @@
-import { cryptoUint32 } from './random.js';
+import { cryptoUint32, newId } from './random.js';
 import { pickWinner, pickLandingPoint } from './picker.js';
 import { layoutEntries } from './layout.js';
-import { MAX_ENTRIES, parseTextEntries, makeTextEntry, addEntries } from './entries.js';
-import { loadState, saveState, browserStorage } from './store.js';
+import {
+  MAX_ENTRIES,
+  parseTextEntries,
+  makeTextEntry,
+  makeImageEntry,
+  labelFromFilename,
+  addEntries,
+} from './entries.js';
+import { loadState, saveState, hydrateImages, browserStorage } from './store.js';
+import { openImageStore } from './image-store.js';
+import { isImageFile, resizeImage } from './images.js';
 import { createBoard, PLAYABLE_RADIUS } from './board.js';
 import { throwDart, clearDarts, FLIGHT_MS } from './dart.js';
 import { createSound } from './sound.js';
@@ -13,14 +22,20 @@ import { toast } from './toast.js';
 const REVEAL_DELAY_MS = 600;
 
 const storage = browserStorage();
-let state = loadState(storage);
+const blobStore = await openImageStore();
+const loaded = await hydrateImages(loadState(storage), blobStore);
+let state = loaded.state;
+const imageUrls = new Map(); // imageId → object URL
+for (const [imageId, blob] of loaded.images) imageUrls.set(imageId, URL.createObjectURL(blob));
+
 let layout = [];
-let busy = false; // true while a dart is in flight or the reveal is open
+let busy = false; // true while a dart is in flight, the reveal is open, or pictures are processing
+let warnedNoImageStore = false;
 
 const board = createBoard(document.getElementById('board'));
 const panel = createPanel({
   onAddText: addText,
-  onAddFiles: () => toast('Pictures arrive in the next step.'),
+  onAddFiles: addFiles,
   onDelete: deleteEntry,
   onClearAll: clearAll,
 });
@@ -35,8 +50,8 @@ throwButton.addEventListener('click', throwAtBoard);
 shuffleButton.addEventListener('click', shuffle);
 muteButton.addEventListener('click', toggleMute);
 
-function imageUrlFor() {
-  return undefined;
+function imageUrlFor(entry) {
+  return entry.type === 'image' ? imageUrls.get(entry.imageId) : undefined;
 }
 
 function persist() {
@@ -77,11 +92,75 @@ function addText(text) {
   setEntries(entries);
 }
 
+async function addFiles(files) {
+  busy = true;
+  updateControls();
+  const added = [];
+  let dropped = 0;
+  try {
+    for (const file of files) {
+      if (state.entries.length + added.length >= MAX_ENTRIES) {
+        dropped++;
+        continue;
+      }
+      if (!isImageFile(file)) {
+        toast(`“${file.name}” isn’t an image — skipped.`);
+        continue;
+      }
+      let blob;
+      try {
+        blob = await resizeImage(file);
+      } catch {
+        toast(`Couldn’t read “${file.name}” — skipped.`);
+        continue;
+      }
+      const imageId = newId();
+      if (blobStore) {
+        try {
+          await blobStore.put(imageId, blob);
+        } catch (err) {
+          if (err?.name === 'QuotaExceededError') {
+            toast('Storage full — remove some pictures.');
+            break;
+          }
+          toast(`Couldn’t save “${file.name}” — skipped.`);
+          continue;
+        }
+      } else if (!warnedNoImageStore) {
+        warnedNoImageStore = true;
+        toast('This browser can’t store pictures — they’ll be gone after a reload.');
+      }
+      imageUrls.set(imageId, URL.createObjectURL(blob));
+      added.push(makeImageEntry(labelFromFilename(file.name), imageId));
+    }
+  } finally {
+    busy = false;
+  }
+  if (dropped > 0) {
+    toast(`The board holds ${MAX_ENTRIES} entries — ${dropped} picture${dropped === 1 ? '' : 's'} not added.`);
+  }
+  if (added.length > 0) setEntries([...state.entries, ...added]);
+  else updateControls();
+}
+
 function deleteEntry(id) {
-  setEntries(state.entries.filter((entry) => entry.id !== id));
+  const entry = state.entries.find((e) => e.id === id);
+  if (!entry) return;
+  if (entry.type === 'image') forgetImage(entry.imageId);
+  setEntries(state.entries.filter((e) => e.id !== id));
+}
+
+function forgetImage(imageId) {
+  const url = imageUrls.get(imageId);
+  if (url) URL.revokeObjectURL(url);
+  imageUrls.delete(imageId);
+  blobStore?.delete(imageId).catch(() => {});
 }
 
 function clearAll() {
+  for (const url of imageUrls.values()) URL.revokeObjectURL(url);
+  imageUrls.clear();
+  blobStore?.clear().catch(() => {});
   setEntries([]);
 }
 
@@ -133,4 +212,5 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+persist(); // saves the board minus any pictures that failed to load
 relayout();
