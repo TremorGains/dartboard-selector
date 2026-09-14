@@ -32,7 +32,12 @@ export function createPanel({ onAddText, onAddFiles, onDelete, onClearAll }) {
   });
   list.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-id]');
-    if (button) onDelete(button.dataset.id);
+    if (!button) return;
+    const index = [...list.querySelectorAll('.entry-delete')].indexOf(button);
+    onDelete(button.dataset.id); // re-renders the list synchronously
+    const remaining = list.querySelectorAll('.entry-delete');
+    if (remaining.length === 0) textarea.focus();
+    else remaining[Math.min(index, remaining.length - 1)].focus();
   });
 
   return {

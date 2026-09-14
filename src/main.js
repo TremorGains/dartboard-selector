@@ -135,12 +135,12 @@ async function addFiles(files) {
     }
   } finally {
     busy = false;
+    updateControls();
   }
   if (dropped > 0) {
     toast(`The board holds ${MAX_ENTRIES} entries — ${dropped} picture${dropped === 1 ? '' : 's'} not added.`);
   }
   if (added.length > 0) setEntries([...state.entries, ...added]);
-  else updateControls();
 }
 
 function deleteEntry(id) {
@@ -204,8 +204,25 @@ async function throwAtBoard() {
   } finally {
     busy = false;
     updateControls();
+    restoreFocus();
   }
-  if (choice === 'remove') deleteEntry(winner.id);
+  if (choice === 'remove') {
+    deleteEntry(winner.id);
+    restoreFocus();
+  }
+}
+
+/**
+ * After a throw or a delete, focus can fall to the page — bring it back to something useful.
+ * The native <dialog> restores focus to whatever was focused before showModal() asynchronously
+ * (observed ~2 frames after close()), so the check is deferred past that before it runs.
+ */
+function restoreFocus() {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (document.activeElement && document.activeElement !== document.body) return;
+    if (!throwButton.disabled) throwButton.focus();
+    else document.getElementById('entry-text')?.focus();
+  }));
 }
 
 function delay(ms) {

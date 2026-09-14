@@ -3,8 +3,8 @@
 const DB_NAME = 'dartboard';
 const STORE_NAME = 'images';
 
-/** Opens the store, or resolves null when IndexedDB isn't usable here. */
-export function openImageStore() {
+/** Opens the store, or resolves null when IndexedDB isn't usable here or doesn't respond in time. */
+export function openImageStore({ timeoutMs = 3000 } = {}) {
   return new Promise((resolve) => {
     if (typeof indexedDB === 'undefined') {
       resolve(null);
@@ -17,9 +17,24 @@ export function openImageStore() {
       resolve(null);
       return;
     }
+    let settled = false;
+    const settle = (value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = setTimeout(() => settle(null), timeoutMs);
     request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME);
-    request.onsuccess = () => resolve(wrap(request.result));
-    request.onerror = () => resolve(null);
+    request.onsuccess = () => {
+      if (settled) {
+        request.result.close(); // timed out already; don't leak this connection
+        return;
+      }
+      settle(wrap(request.result));
+    };
+    request.onerror = () => settle(null);
+    request.onblocked = () => settle(null);
   });
 }
 

@@ -52,3 +52,29 @@ test('openImageStore resolves null where IndexedDB is unavailable', async () => 
   const { openImageStore } = await import('../src/image-store.js');
   assert.equal(await openImageStore(), null);
 });
+
+test('openImageStore resolves null when the open request never fires a callback', async () => {
+  const { openImageStore } = await import('../src/image-store.js');
+  globalThis.indexedDB = { open: () => ({}) };
+  try {
+    assert.equal(await openImageStore({ timeoutMs: 20 }), null);
+  } finally {
+    delete globalThis.indexedDB;
+  }
+});
+
+test('openImageStore resolves null when the open request is blocked', async () => {
+  const { openImageStore } = await import('../src/image-store.js');
+  globalThis.indexedDB = {
+    open: () => {
+      const request = {};
+      setTimeout(() => request.onblocked?.(), 0);
+      return request;
+    },
+  };
+  try {
+    assert.equal(await openImageStore({ timeoutMs: 1000 }), null);
+  } finally {
+    delete globalThis.indexedDB;
+  }
+});

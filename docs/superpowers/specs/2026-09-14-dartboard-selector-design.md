@@ -99,7 +99,7 @@ Entry = {
 5. Impact: thunk plays, dart wobbles, board shakes slightly, winner card highlights.
 6. After ~600ms the reveal `<dialog>` opens: large text or image, CSS confetti, buttons
    **Remove & close** and **Close**. Esc closes (native dialog behaviour).
-7. The dart remains stuck in the board until the next throw or a shuffle.
+7. The dart remains stuck in the board until the next throw, or until the layout changes (shuffle, add or delete).
 8. `prefers-reduced-motion: reduce` — the dart appears at the landing point with no flight,
    shake, or confetti; the reveal still opens.
 

@@ -7,7 +7,7 @@ export function isImageFile(file) {
 
 /** Scales an image down to fit maxSide × maxSide. WebP if the browser can encode it, else JPEG. */
 export async function resizeImage(file, maxSide = MAX_SIDE) {
-  const bitmap = await createImageBitmap(file); // rejects if the file can't be decoded
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' }); // rejects if the file can't be decoded
   try {
     const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
@@ -18,6 +18,7 @@ export async function resizeImage(file, maxSide = MAX_SIDE) {
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#fff'; // flatten transparency: JPEG has no alpha, and cards are white
     ctx.fillRect(0, 0, width, height);
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bitmap, 0, 0, width, height);
     const webp = await toBlob(canvas, 'image/webp');
     if (webp && webp.type === 'image/webp') return webp; // Safari silently returns PNG instead
