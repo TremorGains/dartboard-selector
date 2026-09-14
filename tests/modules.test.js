@@ -7,6 +7,9 @@ const MODULES = {
   '../src/board.js': ['createBoard', 'toPercent', 'PLAYABLE_RADIUS'],
   '../src/panel.js': ['createPanel'],
   '../src/toast.js': ['toast'],
+  '../src/dart.js': ['throwDart', 'clearDarts', 'FLIGHT_MS'],
+  '../src/sound.js': ['createSound'],
+  '../src/reveal.js': ['createReveal'],
 };
 
 for (const [path, names] of Object.entries(MODULES)) {
@@ -21,4 +24,16 @@ test('toPercent maps board units to CSS percent', async () => {
   assert.equal(toPercent(-100), 0);
   assert.equal(toPercent(0), 50);
   assert.equal(toPercent(100), 100);
+});
+
+test('sound is a silent no-op without Web Audio', async () => {
+  const { createSound } = await import('../src/sound.js');
+  const sound = createSound();
+  assert.doesNotThrow(() => {
+    sound.unlock();
+    sound.whoosh();
+    sound.thunk();
+  });
+  sound.setMuted(true);
+  assert.equal(sound.muted, true);
 });
