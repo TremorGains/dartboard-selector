@@ -1,4 +1,4 @@
-# Dartboard Selector
+# DartPick
 
 Pin names or pictures to a dartboard, throw a dart, and it picks one — an alternative to wheel-of-names spinners.
 
