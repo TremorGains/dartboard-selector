@@ -296,3 +296,8 @@ function delay(ms) {
 
 persist(); // saves the board minus any pictures that failed to load
 relayout();
+
+// Cache the app so it works offline. Skipped where service workers aren't available.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}

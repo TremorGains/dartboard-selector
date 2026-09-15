@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full-bleed background so the icon also works as a maskable icon; artwork stays inside the central safe zone. -->
+  <rect width="512" height="512" fill="#121a16"/>
+  <circle cx="256" cy="256" r="188" fill="#101010"/>
+  <circle cx="256" cy="256" r="160" fill="#efe3c2"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#c8243a" stroke-width="22"/>
+  <circle cx="256" cy="256" r="104" fill="#1b1b1b"/>
+  <circle cx="256" cy="256" r="104" fill="none" stroke="#12804a" stroke-width="18"/>
+  <circle cx="256" cy="256" r="40" fill="#12804a"/>
+  <circle cx="256" cy="256" r="20" fill="#c8243a"/>
+  <!-- The dart, drawn like the in-app dart: tip in the bull, flights towards the bottom right. -->
+  <g transform="translate(258 252) rotate(35) scale(1.7)">
+    <path d="M0 0 L18 -1.6 L18 1.6 Z" fill="#cfd4db"/>
+    <rect x="18" y="-3.8" width="30" height="7.6" rx="2.6" fill="#3b4048"/>
+    <rect x="48" y="-2" width="28" height="4" rx="1" fill="#1e1f22"/>
+    <path d="M72 0 L94 -12 L118 -12 L104 0 L118 12 L94 12 Z" fill="#e0442f" stroke="#8e1f12" stroke-width="1.2"/>
+  </g>
+</svg>
