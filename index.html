@@ -37,6 +37,11 @@
           <button id="clear-all" class="link-btn" type="button">Clear all</button>
         </div>
         <ul id="entry-list" class="entry-list" aria-label="Entries on the board"></ul>
+        <p class="panel-footer">
+          <button id="open-your-data" class="link-btn" type="button">Your data</button>
+          <span aria-hidden="true">·</span>
+          <a class="link-btn" href="privacy.html">Privacy policy</a>
+        </p>
       </div>
     </aside>
   </main>
@@ -49,6 +54,22 @@
       <div class="row">
         <button class="btn" value="remove">Remove &amp; close</button>
         <button class="btn btn-primary" value="close" autofocus>Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="your-data" class="reveal" aria-labelledby="your-data-title">
+    <form method="dialog" class="reveal-card data-card">
+      <h2 id="your-data-title" class="data-title">Your data</h2>
+      <p>Everything you add to DartPick — names, pictures, where you pin them and your settings — is stored only on this device. It isn’t sent to us or anyone else, and there’s no account.</p>
+      <div class="row">
+        <button id="export-data" class="btn btn-primary" type="button">Download my data</button>
+        <button id="delete-data" class="btn btn-danger" type="button">Delete everything</button>
+      </div>
+      <p class="hint">The download is a file with all your entries, pictures and settings. Deleting clears them from this device and can’t be undone.</p>
+      <p class="hint">Questions? Email <a href="mailto:hello@dartpick.app">hello@dartpick.app</a> or read the <a href="privacy.html">privacy policy</a>.</p>
+      <div class="row">
+        <button class="btn" value="close">Close</button>
       </div>
     </form>
   </dialog>

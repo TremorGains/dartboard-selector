@@ -236,6 +236,27 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 }
 @keyframes confetti-fall { to { transform: translate(var(--drift), 105vh) rotate(var(--spin)); } }
 
+/* ---------- Your data ---------- */
+.panel-footer { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--muted); }
+.data-card { text-align: left; }
+.data-card p { margin: 12px 0 0; line-height: 1.5; }
+.data-card a { color: var(--gold); }
+.data-title { margin: 0; font-size: 22px; }
+.btn-danger { color: #ff8a7a; border-color: #5a2a24; }
+.btn-danger:hover:not(:disabled) { background: #3a2320; border-color: #7d3a30; }
+
+/* ---------- Content pages (privacy, about, …) ---------- */
+.page { max-width: 720px; margin: 0 auto; padding: 32px 24px 64px; line-height: 1.6; }
+.page h1 { margin: 0 0 4px; font-size: 32px; }
+.page h1 span { color: var(--accent); }
+.page h2 { margin: 32px 0 8px; font-size: 20px; }
+.page a { color: var(--gold); }
+.page ul { padding-left: 20px; }
+.page li { margin: 6px 0; }
+.page-nav { margin: 0 0 24px; font-size: 14px; }
+.updated { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
+.gap { padding: 0 6px; border-radius: 4px; background: #3a2a14; color: var(--gold); }
+
 /* ---------- Toasts ---------- */
 .toasts {
   position: fixed; left: 50%; top: 20px; z-index: 10;

@@ -11,7 +11,8 @@ import {
   pinEntry,
   clearPins,
 } from './entries.js';
-import { loadState, saveState, hydrateImages, browserStorage } from './store.js';
+import { loadState, saveState, hydrateImages, browserStorage, emptyState } from './store.js';
+import { buildExport, deleteAllData } from './your-data.js';
 import { openImageStore } from './image-store.js';
 import { isImageFile, resizeImage } from './images.js';
 import { createBoard, PLAYABLE_RADIUS } from './board.js';
@@ -54,6 +55,14 @@ const muteButton = document.getElementById('mute');
 throwButton.addEventListener('click', throwAtBoard);
 shuffleButton.addEventListener('click', shuffle);
 muteButton.addEventListener('click', toggleMute);
+
+const yourData = document.getElementById('your-data');
+document.getElementById('open-your-data').addEventListener('click', () => yourData.showModal());
+document.getElementById('export-data').addEventListener('click', exportData);
+document.getElementById('delete-data').addEventListener('click', deleteEverything);
+yourData.addEventListener('click', (event) => {
+  if (event.target === yourData) yourData.close(); // a click on the backdrop
+});
 
 function imageUrlFor(entry) {
   return entry.type === 'image' ? imageUrls.get(entry.imageId) : undefined;
@@ -235,6 +244,50 @@ function restoreFocus() {
     if (!throwButton.disabled) throwButton.focus();
     else document.getElementById('entry-text')?.focus();
   }));
+}
+
+/** Downloads everything the app has stored on this device as one JSON file. */
+async function exportData() {
+  try {
+    const blobs = new Map();
+    for (const [imageId, url] of imageUrls) blobs.set(imageId, await (await fetch(url)).blob());
+    const data = await buildExport(state, blobs, { toDataUrl: blobToDataUrl });
+    const file = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(file);
+    link.download = `dartpick-data-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  } catch {
+    toast('Couldn’t prepare the download — please try again.');
+  }
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/** Wipes every entry, picture and setting from this device. */
+async function deleteEverything() {
+  if (!confirm('Delete every entry, picture and setting from this device? This can’t be undone.')) return;
+  try {
+    await deleteAllData({ storage, blobStore });
+  } catch {
+    toast('Couldn’t delete everything — please try again.');
+    return;
+  }
+  for (const url of imageUrls.values()) URL.revokeObjectURL(url);
+  imageUrls.clear();
+  state = emptyState();
+  sound.setMuted(state.muted);
+  yourData.close();
+  relayout();
+  toast('Everything has been deleted from this device.');
 }
 
 function delay(ms) {
