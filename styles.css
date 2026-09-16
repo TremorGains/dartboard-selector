@@ -255,7 +255,6 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 .page li { margin: 6px 0; }
 .page-nav { margin: 0 0 24px; font-size: 14px; }
 .updated { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
-.gap { padding: 0 6px; border-radius: 4px; background: #3a2a14; color: var(--gold); }
 .site-footer {
   max-width: 720px; margin: 0 auto; padding: 24px 24px 40px;
   border-top: 1px solid var(--line);
