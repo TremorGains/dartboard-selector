@@ -2,12 +2,16 @@
 // Only same-origin GET requests are handled — anything else (such as ad requests,
 // once ads exist) goes straight to the network untouched.
 
-const CACHE = 'dartpick-v1';
+const CACHE = 'dartpick-v2';
 const SHELL = [
   './',
   'index.html',
   'styles.css',
   'privacy.html',
+  'how-to.html',
+  'faq.html',
+  'about.html',
+  'contact.html',
   'manifest.webmanifest',
   'icons/icon.svg',
   'icons/icon-192.png',

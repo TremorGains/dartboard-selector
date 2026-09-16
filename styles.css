@@ -237,7 +237,7 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 @keyframes confetti-fall { to { transform: translate(var(--drift), 105vh) rotate(var(--spin)); } }
 
 /* ---------- Your data ---------- */
-.panel-footer { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--muted); }
+.panel-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; font-size: 13px; color: var(--muted); }
 .data-card { text-align: left; }
 .data-card p { margin: 12px 0 0; line-height: 1.5; }
 .data-card a { color: var(--gold); }
@@ -256,6 +256,15 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 .page-nav { margin: 0 0 24px; font-size: 14px; }
 .updated { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
 .gap { padding: 0 6px; border-radius: 4px; background: #3a2a14; color: var(--gold); }
+.site-footer {
+  max-width: 720px; margin: 0 auto; padding: 24px 24px 40px;
+  border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 14px;
+}
+.site-footer nav { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 8px; }
+.site-footer a { color: var(--text); }
+.site-footer a[aria-current="page"] { color: var(--gold); }
+.site-footer p { margin: 0; }
 
 /* ---------- Toasts ---------- */
 .toasts {
