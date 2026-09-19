@@ -1,8 +1,8 @@
-# Dartboard Selector
+# DartPick
 
 Pin names or pictures to a dartboard, throw a dart, and it picks one — an alternative to wheel-of-names spinners.
 
-**Live:** https://tremorgains.github.io/dartboard-selector/
+**Live:** https://dartpick.app/
 
 ## Using it
 
