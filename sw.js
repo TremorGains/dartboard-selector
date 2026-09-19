@@ -2,7 +2,7 @@
 // Only same-origin GET requests are handled — anything else (such as ad requests,
 // once ads exist) goes straight to the network untouched.
 
-const CACHE = 'dartpick-v2';
+const CACHE = 'dartpick-v3';
 const SHELL = [
   './',
   'index.html',
@@ -17,6 +17,7 @@ const SHELL = [
   'icons/icon-192.png',
   'icons/icon-512.png',
   'src/board.js',
+  'src/boards.js',
   'src/dart.js',
   'src/entries.js',
   'src/image-store.js',
@@ -29,6 +30,7 @@ const SHELL = [
   'src/reveal.js',
   'src/sound.js',
   'src/store.js',
+  'src/themes.js',
   'src/toast.js',
   'src/your-data.js',
 ];
