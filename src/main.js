@@ -11,7 +11,9 @@ import {
   pinEntry,
   clearPins,
 } from './entries.js';
-import { loadState, saveState, hydrateImages, browserStorage, emptyState } from './store.js';
+import { MAX_BOARDS, addBoard, renameBoard, removeBoard } from './boards.js';
+import { applyTheme } from './themes.js';
+import { loadAppState, saveAppState, hydrateAppImages, browserStorage, emptyAppState } from './store.js';
 import { buildExport, deleteAllData } from './your-data.js';
 import { openImageStore } from './image-store.js';
 import { isImageFile, resizeImage } from './images.js';
@@ -20,16 +22,19 @@ import { throwDart, clearDarts, FLIGHT_MS } from './dart.js';
 import { createSound } from './sound.js';
 import { createReveal } from './reveal.js';
 import { createPanel } from './panel.js';
+import { createBoardMenu } from './board-menu.js';
+import { createCustomise } from './customise.js';
 import { toast } from './toast.js';
 
 const REVEAL_DELAY_MS = 600;
 
 const storage = browserStorage();
 const blobStore = await openImageStore();
-const loaded = await hydrateImages(loadState(storage), blobStore);
-let state = loaded.state;
-const imageUrls = new Map(); // imageId → object URL
+const loaded = await hydrateAppImages(loadAppState(storage), blobStore);
+let app = loaded.state; // { boards, activeBoardId, settings: { muted, theme } }
+const imageUrls = new Map(); // imageId → object URL, for pictures on every board
 for (const [imageId, blob] of loaded.images) imageUrls.set(imageId, URL.createObjectURL(blob));
+applyTheme(document.documentElement, app.settings.theme);
 
 let layout = [];
 let busy = false; // true while a dart is in flight, the reveal is open, or pictures are processing
@@ -45,9 +50,16 @@ const panel = createPanel({
   onDelete: deleteEntry,
   onClearAll: clearAll,
 });
+const boardMenu = createBoardMenu({
+  onSwitch: switchBoard,
+  onCreate: createNewBoard,
+  onRename: renameActiveBoard,
+  onDelete: deleteActiveBoard,
+});
 const reveal = createReveal(document.getElementById('reveal'));
+const customise = createCustomise(document.getElementById('customise-dialog'), { onChange: changeTheme });
 const sound = createSound();
-sound.setMuted(state.muted);
+sound.setMuted(app.settings.muted);
 
 const throwButton = document.getElementById('throw');
 const shuffleButton = document.getElementById('shuffle');
@@ -55,6 +67,7 @@ const muteButton = document.getElementById('mute');
 throwButton.addEventListener('click', throwAtBoard);
 shuffleButton.addEventListener('click', shuffle);
 muteButton.addEventListener('click', toggleMute);
+document.getElementById('customise').addEventListener('click', () => customise.open(app.settings.theme));
 
 const yourData = document.getElementById('your-data');
 document.getElementById('open-your-data').addEventListener('click', () => yourData.showModal());
@@ -64,46 +77,58 @@ yourData.addEventListener('click', (event) => {
   if (event.target === yourData) yourData.close(); // a click on the backdrop
 });
 
+/** The board currently on screen. */
+function active() {
+  return app.boards.find((b) => b.id === app.activeBoardId);
+}
+
+/** Changes fields of the active board. */
+function updateActive(changes) {
+  app = { ...app, boards: app.boards.map((b) => (b.id === app.activeBoardId ? { ...b, ...changes } : b)) };
+}
+
 function imageUrlFor(entry) {
   return entry.type === 'image' ? imageUrls.get(entry.imageId) : undefined;
 }
 
 function persist() {
   try {
-    saveState(storage, state);
+    saveAppState(storage, app);
   } catch {
     toast('Couldn’t save your board in this browser.');
   }
 }
 
-/** Lays the cards out again after the entries or the seed change. */
+/** Lays the active board's cards out again after its entries, seed or the board itself change. */
 function relayout() {
   clearDarts(board.dartLayer);
-  const auto = layoutEntries(state.entries.length, PLAYABLE_RADIUS, state.layoutSeed);
-  layout = applyPins(auto, state.entries, PLAYABLE_RADIUS);
-  board.render(state.entries, layout, imageUrlFor);
-  panel.render(state.entries, imageUrlFor);
+  const { entries, layoutSeed } = active();
+  const auto = layoutEntries(entries.length, PLAYABLE_RADIUS, layoutSeed);
+  layout = applyPins(auto, entries, PLAYABLE_RADIUS);
+  board.render(entries, layout, imageUrlFor);
+  panel.render(entries, imageUrlFor);
+  boardMenu.render(app.boards, app.activeBoardId, { canAdd: app.boards.length < MAX_BOARDS });
   updateControls();
 }
 
 function updateControls() {
-  const empty = state.entries.length === 0;
+  const empty = active().entries.length === 0;
   throwButton.disabled = busy || empty;
   shuffleButton.disabled = busy || empty;
   panel.setBusy(busy);
-  muteButton.setAttribute('aria-pressed', String(state.muted));
+  muteButton.setAttribute('aria-pressed', String(app.settings.muted));
 }
 
 function setEntries(entries) {
-  state = { ...state, entries };
+  updateActive({ entries });
   persist();
   relayout();
 }
 
 function addText(text) {
-  const { entries, dropped } = addEntries(state.entries, parseTextEntries(text).map(makeTextEntry));
+  const { entries, dropped } = addEntries(active().entries, parseTextEntries(text).map(makeTextEntry));
   panel.clearText();
-  if (dropped > 0) toast(`The board holds ${MAX_ENTRIES} entries — ${dropped} not added.`);
+  if (dropped > 0) toast(`A board holds ${MAX_ENTRIES} entries — ${dropped} not added.`);
   setEntries(entries);
 }
 
@@ -114,7 +139,7 @@ async function addFiles(files) {
   let dropped = 0;
   try {
     for (const file of files) {
-      if (state.entries.length + added.length >= MAX_ENTRIES) {
+      if (active().entries.length + added.length >= MAX_ENTRIES) {
         dropped++;
         continue;
       }
@@ -153,16 +178,16 @@ async function addFiles(files) {
     updateControls();
   }
   if (dropped > 0) {
-    toast(`The board holds ${MAX_ENTRIES} entries — ${dropped} picture${dropped === 1 ? '' : 's'} not added.`);
+    toast(`A board holds ${MAX_ENTRIES} entries — ${dropped} picture${dropped === 1 ? '' : 's'} not added.`);
   }
-  if (added.length > 0) setEntries([...state.entries, ...added]);
+  if (added.length > 0) setEntries([...active().entries, ...added]);
 }
 
 function deleteEntry(id) {
-  const entry = state.entries.find((e) => e.id === id);
+  const entry = active().entries.find((e) => e.id === id);
   if (!entry) return;
   if (entry.type === 'image') forgetImage(entry.imageId);
-  setEntries(state.entries.filter((e) => e.id !== id));
+  setEntries(active().entries.filter((e) => e.id !== id));
 }
 
 function forgetImage(imageId) {
@@ -172,42 +197,81 @@ function forgetImage(imageId) {
   blobStore?.delete(imageId).catch(() => {});
 }
 
+/** Empties the active board, deleting only its own pictures (other boards keep theirs). */
 function clearAll() {
-  for (const url of imageUrls.values()) URL.revokeObjectURL(url);
-  imageUrls.clear();
-  blobStore?.clear().catch(() => {});
+  for (const entry of active().entries) {
+    if (entry.type === 'image') forgetImage(entry.imageId);
+  }
   setEntries([]);
 }
 
 /** A card was dragged and dropped at `point` (board units). */
 function moveEntry(index, point) {
-  setEntries(pinEntry(state.entries, state.entries[index].id, point));
+  setEntries(pinEntry(active().entries, active().entries[index].id, point));
 }
 
-/** Re-scatters every card, including ones the user placed by hand. */
+/** Re-scatters every card on the active board, including ones placed by hand. */
 function shuffle() {
-  state = { ...state, entries: clearPins(state.entries), layoutSeed: cryptoUint32() };
+  updateActive({ entries: clearPins(active().entries), layoutSeed: cryptoUint32() });
   persist();
   relayout();
 }
 
 function toggleMute() {
-  state = { ...state, muted: !state.muted };
-  sound.setMuted(state.muted);
+  app = { ...app, settings: { ...app.settings, muted: !app.settings.muted } };
+  sound.setMuted(app.settings.muted);
   persist();
   updateControls();
 }
 
+function switchBoard(id) {
+  if (busy || !app.boards.some((b) => b.id === id)) return;
+  app = { ...app, activeBoardId: id };
+  persist();
+  relayout();
+}
+
+function createNewBoard(name) {
+  try {
+    const { boards, board: created } = addBoard(app.boards, name, { layoutSeed: cryptoUint32() });
+    app = { ...app, boards, activeBoardId: created.id };
+    persist();
+    relayout();
+  } catch {
+    toast(`You can keep up to ${MAX_BOARDS} boards — delete one to make room.`);
+  }
+}
+
+function renameActiveBoard(name) {
+  app = { ...app, boards: renameBoard(app.boards, app.activeBoardId, name) };
+  persist();
+  relayout();
+}
+
+function deleteActiveBoard() {
+  const { boards, imageIds } = removeBoard(app.boards, app.activeBoardId);
+  imageIds.forEach(forgetImage);
+  app = { ...app, boards, activeBoardId: boards[0].id };
+  persist();
+  relayout();
+}
+
+function changeTheme(part, presetId) {
+  app = { ...app, settings: { ...app.settings, theme: { ...app.settings.theme, [part]: presetId } } };
+  applyTheme(document.documentElement, app.settings.theme);
+  persist();
+}
+
 async function throwAtBoard() {
-  if (busy || state.entries.length === 0) return;
+  if (busy || active().entries.length === 0) return;
   busy = true;
   updateControls();
   sound.unlock();
   clearDarts(board.dartLayer);
   board.highlight(null);
 
-  const index = pickWinner(state.entries);
-  const winner = state.entries[index];
+  const index = pickWinner(active().entries);
+  const winner = active().entries[index];
   const slot = layout[index];
   const half = slot.size / 2;
   const point = pickLandingPoint({ x: slot.x - half, y: slot.y - half, width: slot.size, height: slot.size });
@@ -251,7 +315,7 @@ async function exportData() {
   try {
     const blobs = new Map();
     for (const [imageId, url] of imageUrls) blobs.set(imageId, await (await fetch(url)).blob());
-    const data = await buildExport(state, blobs, { toDataUrl: blobToDataUrl });
+    const data = await buildExport(app, blobs, { toDataUrl: blobToDataUrl });
     const file = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(file);
@@ -272,9 +336,9 @@ function blobToDataUrl(blob) {
   });
 }
 
-/** Wipes every entry, picture and setting from this device. */
+/** Wipes every board, picture and setting from this device. */
 async function deleteEverything() {
-  if (!confirm('Delete every entry, picture and setting from this device? This can’t be undone.')) return;
+  if (!confirm('Delete every board, picture and setting from this device? This can’t be undone.')) return;
   try {
     await deleteAllData({ storage, blobStore });
   } catch {
@@ -283,8 +347,9 @@ async function deleteEverything() {
   }
   for (const url of imageUrls.values()) URL.revokeObjectURL(url);
   imageUrls.clear();
-  state = emptyState();
-  sound.setMuted(state.muted);
+  app = emptyAppState();
+  applyTheme(document.documentElement, app.settings.theme);
+  sound.setMuted(app.settings.muted);
   yourData.close();
   relayout();
   toast('Everything has been deleted from this device.');
@@ -294,7 +359,7 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-persist(); // saves the board minus any pictures that failed to load
+persist(); // saves in the current format (migrating an older save) minus any pictures that failed to load
 relayout();
 
 // Cache the app so it works offline. Skipped where service workers aren't available.

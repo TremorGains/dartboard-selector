@@ -12,7 +12,6 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const NUMBERS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 // Regulation proportions, scaled so the outer double wire sits at 80.
 const R = { bull: 3, outerBull: 7.5, trebleIn: 46.6, trebleOut: 50.4, doubleIn: 76.2, doubleOut: 80, numbers: 90, edge: 100 };
-const COLORS = { dark: '#1b1b1b', light: '#efe3c2', red: '#c8243a', green: '#12804a', wire: '#b9bcc0', surround: '#101010' };
 const SEGMENT = (2 * Math.PI) / 20;
 
 export function toPercent(u) {
@@ -127,14 +126,15 @@ function buildCard(entry, slot, imageUrl) {
 
 function buildDartboardSvg() {
   const svg = svgEl('svg', { viewBox: '-100 -100 200 200', class: 'dartboard', 'aria-hidden': 'true' });
-  svg.append(svgEl('circle', { r: R.edge, fill: COLORS.surround }));
+  // Colours come from the theme's --board-* CSS variables via these classes (see styles.css).
+  svg.append(svgEl('circle', { r: R.edge, class: 'board-surround' }));
 
   NUMBERS.forEach((number, i) => {
     const mid = -Math.PI / 2 + i * SEGMENT; // 20 at the top, clockwise
     const a1 = mid - SEGMENT / 2;
     const a2 = mid + SEGMENT / 2;
-    const single = i % 2 === 0 ? COLORS.dark : COLORS.light;
-    const ring = i % 2 === 0 ? COLORS.red : COLORS.green;
+    const single = i % 2 === 0 ? 'seg-dark' : 'seg-light';
+    const ring = i % 2 === 0 ? 'ring-red' : 'ring-green';
     svg.append(
       sector(R.outerBull, R.trebleIn, a1, a2, single),
       sector(R.trebleIn, R.trebleOut, a1, a2, ring),
@@ -151,11 +151,11 @@ function buildDartboardSvg() {
   });
 
   svg.append(
-    svgEl('circle', { r: R.outerBull, fill: COLORS.green }),
-    svgEl('circle', { r: R.bull, fill: COLORS.red }),
+    svgEl('circle', { r: R.outerBull, class: 'ring-green' }),
+    svgEl('circle', { r: R.bull, class: 'ring-red' }),
   );
 
-  const wires = svgEl('g', { fill: 'none', stroke: COLORS.wire, 'stroke-width': 0.35 });
+  const wires = svgEl('g', { class: 'board-wires', fill: 'none', 'stroke-width': 0.35 });
   for (const r of [R.bull, R.outerBull, R.trebleIn, R.trebleOut, R.doubleIn, R.doubleOut]) {
     wires.append(svgEl('circle', { r }));
   }
@@ -175,10 +175,10 @@ function buildDartboardSvg() {
 }
 
 /** Annular sector between radii r1 < r2 and angles a1 < a2 (radians, clockwise). */
-function sector(r1, r2, a1, a2, fill) {
+function sector(r1, r2, a1, a2, className) {
   const pt = (r, a) => `${(r * Math.cos(a)).toFixed(3)} ${(r * Math.sin(a)).toFixed(3)}`;
   const d = `M ${pt(r2, a1)} A ${r2} ${r2} 0 0 1 ${pt(r2, a2)} L ${pt(r1, a2)} A ${r1} ${r1} 0 0 0 ${pt(r1, a1)} Z`;
-  return svgEl('path', { d, fill });
+  return svgEl('path', { d, class: className });
 }
 
 function svgEl(tag, attrs = {}) {

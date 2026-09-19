@@ -5,15 +5,16 @@ export const FLIGHT_MS = 700;
 const WOBBLE_MS = 450;
 const FLIGHT_STEPS = 10;
 
-// Constant markup only — never put user text in here.
+// Constant markup only — never put user text in here. Colours come from the
+// theme's --dart-* CSS variables (see styles.css).
 const DART_SVG = `
 <svg class="dart-svg" viewBox="0 -12 120 24" aria-hidden="true">
-  <path d="M0 0 L18 -1.4 L18 1.4 Z" fill="#cfd4db"/>
-  <rect x="18" y="-3.4" width="30" height="6.8" rx="2.4" fill="#3b4048"/>
-  <path d="M24 -3.4v6.8M29 -3.4v6.8M34 -3.4v6.8M39 -3.4v6.8M44 -3.4v6.8" stroke="#6b727d" stroke-width="1"/>
-  <rect x="48" y="-1.7" width="28" height="3.4" rx="1" fill="#1e1f22"/>
-  <path d="M72 0 L94 -11 L118 -11 L104 0 L118 11 L94 11 Z" fill="#e0442f" stroke="#8e1f12" stroke-width="1"/>
-  <path d="M72 0 H112" stroke="#8e1f12" stroke-width="1.2"/>
+  <path class="dart-tip" d="M0 0 L18 -1.4 L18 1.4 Z"/>
+  <rect class="dart-barrel" x="18" y="-3.4" width="30" height="6.8" rx="2.4"/>
+  <path class="dart-knurl" d="M24 -3.4v6.8M29 -3.4v6.8M34 -3.4v6.8M39 -3.4v6.8M44 -3.4v6.8" stroke-width="1"/>
+  <rect class="dart-shaft" x="48" y="-1.7" width="28" height="3.4" rx="1"/>
+  <path class="dart-flight" d="M72 0 L94 -11 L118 -11 L104 0 L118 11 L94 11 Z" stroke-width="1"/>
+  <path class="dart-flight-line" d="M72 0 H112" stroke-width="1.2"/>
 </svg>`;
 
 export function clearDarts(layer) {

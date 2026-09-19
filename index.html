@@ -20,6 +20,7 @@
         <button id="throw" class="btn btn-primary btn-throw" type="button" disabled>Throw dart</button>
         <button id="shuffle" class="btn" type="button" disabled>Shuffle</button>
         <button id="mute" class="btn" type="button" aria-pressed="false">Mute</button>
+        <button id="customise" class="btn" type="button">Customise</button>
       </div>
     </section>
 
@@ -27,6 +28,15 @@
       <h1 id="app-title">Dart<span>Pick</span></h1>
       <p class="hint">Pin names or pictures, then throw a dart to pick one.</p>
       <div id="panel-controls" class="panel-controls">
+        <div class="board-menu">
+          <label class="field-label" for="board-select">Board</label>
+          <div class="board-menu-row">
+            <select id="board-select"></select>
+            <button id="new-board" class="link-btn" type="button">New</button>
+            <button id="rename-board" class="link-btn" type="button">Rename</button>
+            <button id="delete-board" class="link-btn" type="button">Delete</button>
+          </div>
+        </div>
         <label class="field-label" for="entry-text">Add entries — one per line</label>
         <textarea id="entry-text" rows="4" placeholder="Alice&#10;Bob&#10;Charlie"></textarea>
         <div class="row">
@@ -77,6 +87,29 @@
       <p class="hint">Questions? Email <a href="mailto:hello@dartpick.app">hello@dartpick.app</a> or read the <a href="privacy.html">privacy policy</a>.</p>
       <div class="row">
         <button class="btn" value="close">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="board-name" class="reveal" aria-labelledby="board-name-title">
+    <form method="dialog" class="reveal-card data-card">
+      <h2 id="board-name-title" class="data-title">New board</h2>
+      <label class="field-label" for="board-name-input">Name</label>
+      <input id="board-name-input" class="text-input" type="text" maxlength="40" autocomplete="off">
+      <div class="row">
+        <button class="btn btn-primary" value="save">Save</button>
+        <button class="btn" type="button" data-cancel>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="customise-dialog" class="reveal" aria-labelledby="customise-title">
+    <form method="dialog" class="reveal-card data-card customise-card">
+      <h2 id="customise-title" class="data-title">Customise</h2>
+      <p class="hint">Pick a look for each part. Changes apply straight away.</p>
+      <div id="theme-options"></div>
+      <div class="row">
+        <button class="btn btn-primary" value="close">Done</button>
       </div>
     </form>
   </dialog>
