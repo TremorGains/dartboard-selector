@@ -271,18 +271,7 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 .dart-flight { fill: var(--dart-flight); stroke: var(--dart-flight-edge); }
 .dart-flight-line { stroke: var(--dart-flight-edge); }
 
-/* ---------- Board menu & Customise ---------- */
-.board-menu { display: flex; flex-direction: column; gap: 6px; }
-.board-menu-row { display: flex; align-items: center; gap: 6px; }
-.board-menu select, .text-input {
-  flex: 1; min-width: 0;
-  padding: 8px 10px;
-  font: inherit; font-size: 15px;
-  color: var(--text); background: var(--bg);
-  border: 1px solid var(--line); border-radius: 10px;
-}
-.board-menu select:focus-visible, .text-input:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
-.text-input { width: 100%; margin-top: 6px; }
+/* ---------- Customise ---------- */
 .customise-card { max-height: 85vh; overflow-y: auto; }
 .theme-part { margin: 16px 0 0; padding: 0; border: 0; }
 .theme-part legend { margin-bottom: 8px; padding: 0; font-weight: 700; }

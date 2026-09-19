@@ -12,7 +12,6 @@ const MODULES = {
   '../src/reveal.js': ['createReveal'],
   '../src/images.js': ['isImageFile', 'resizeImage'],
   '../src/image-store.js': ['openImageStore'],
-  '../src/board-menu.js': ['createBoardMenu'],
   '../src/customise.js': ['createCustomise'],
 };
 

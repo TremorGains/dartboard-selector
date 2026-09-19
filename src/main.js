@@ -11,7 +11,6 @@ import {
   pinEntry,
   clearPins,
 } from './entries.js';
-import { MAX_BOARDS, addBoard, renameBoard, removeBoard } from './boards.js';
 import { applyTheme } from './themes.js';
 import { loadAppState, saveAppState, hydrateAppImages, browserStorage, emptyAppState } from './store.js';
 import { buildExport, deleteAllData } from './your-data.js';
@@ -22,7 +21,6 @@ import { throwDart, clearDarts, FLIGHT_MS } from './dart.js';
 import { createSound } from './sound.js';
 import { createReveal } from './reveal.js';
 import { createPanel } from './panel.js';
-import { createBoardMenu } from './board-menu.js';
 import { createCustomise } from './customise.js';
 import { toast } from './toast.js';
 
@@ -50,12 +48,6 @@ const panel = createPanel({
   onDelete: deleteEntry,
   onClearAll: clearAll,
 });
-const boardMenu = createBoardMenu({
-  onSwitch: switchBoard,
-  onCreate: createNewBoard,
-  onRename: renameActiveBoard,
-  onDelete: deleteActiveBoard,
-});
 const reveal = createReveal(document.getElementById('reveal'));
 const customise = createCustomise(document.getElementById('customise-dialog'), { onChange: changeTheme });
 const sound = createSound();
@@ -77,12 +69,12 @@ yourData.addEventListener('click', (event) => {
   if (event.target === yourData) yourData.close(); // a click on the backdrop
 });
 
-/** The board currently on screen. */
+/** The board on screen. The saved shape keeps a list of boards, but only this one is shown. */
 function active() {
   return app.boards.find((b) => b.id === app.activeBoardId);
 }
 
-/** Changes fields of the active board. */
+/** Changes fields of the board on screen. */
 function updateActive(changes) {
   app = { ...app, boards: app.boards.map((b) => (b.id === app.activeBoardId ? { ...b, ...changes } : b)) };
 }
@@ -99,7 +91,7 @@ function persist() {
   }
 }
 
-/** Lays the active board's cards out again after its entries, seed or the board itself change. */
+/** Lays the cards out again after the entries or the seed change. */
 function relayout() {
   clearDarts(board.dartLayer);
   const { entries, layoutSeed } = active();
@@ -107,7 +99,6 @@ function relayout() {
   layout = applyPins(auto, entries, PLAYABLE_RADIUS);
   board.render(entries, layout, imageUrlFor);
   panel.render(entries, imageUrlFor);
-  boardMenu.render(app.boards, app.activeBoardId, { canAdd: app.boards.length < MAX_BOARDS });
   updateControls();
 }
 
@@ -197,7 +188,7 @@ function forgetImage(imageId) {
   blobStore?.delete(imageId).catch(() => {});
 }
 
-/** Empties the active board, deleting only its own pictures (other boards keep theirs). */
+/** Empties the board and deletes its pictures. */
 function clearAll() {
   for (const entry of active().entries) {
     if (entry.type === 'image') forgetImage(entry.imageId);
@@ -210,7 +201,7 @@ function moveEntry(index, point) {
   setEntries(pinEntry(active().entries, active().entries[index].id, point));
 }
 
-/** Re-scatters every card on the active board, including ones placed by hand. */
+/** Re-scatters every card, including ones placed by hand. */
 function shuffle() {
   updateActive({ entries: clearPins(active().entries), layoutSeed: cryptoUint32() });
   persist();
@@ -222,38 +213,6 @@ function toggleMute() {
   sound.setMuted(app.settings.muted);
   persist();
   updateControls();
-}
-
-function switchBoard(id) {
-  if (busy || !app.boards.some((b) => b.id === id)) return;
-  app = { ...app, activeBoardId: id };
-  persist();
-  relayout();
-}
-
-function createNewBoard(name) {
-  try {
-    const { boards, board: created } = addBoard(app.boards, name, { layoutSeed: cryptoUint32() });
-    app = { ...app, boards, activeBoardId: created.id };
-    persist();
-    relayout();
-  } catch {
-    toast(`You can keep up to ${MAX_BOARDS} boards — delete one to make room.`);
-  }
-}
-
-function renameActiveBoard(name) {
-  app = { ...app, boards: renameBoard(app.boards, app.activeBoardId, name) };
-  persist();
-  relayout();
-}
-
-function deleteActiveBoard() {
-  const { boards, imageIds } = removeBoard(app.boards, app.activeBoardId);
-  imageIds.forEach(forgetImage);
-  app = { ...app, boards, activeBoardId: boards[0].id };
-  persist();
-  relayout();
 }
 
 function changeTheme(part, presetId) {
