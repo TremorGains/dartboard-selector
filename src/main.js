@@ -23,6 +23,7 @@ import { createReveal } from './reveal.js';
 import { createPanel } from './panel.js';
 import { createCustomise } from './customise.js';
 import { toast } from './toast.js';
+import { setupAds } from './site.js';
 
 const REVEAL_DELAY_MS = 600;
 
@@ -320,6 +321,9 @@ function delay(ms) {
 
 persist(); // saves in the current format (migrating an older save) minus any pictures that failed to load
 relayout();
+
+// Ads and the one-time ad choice. Does nothing until the AdSense ids in ads.js are set.
+setupAds();
 
 // Cache the app so it works offline. Skipped where service workers aren't available.
 if ('serviceWorker' in navigator) {

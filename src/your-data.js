@@ -1,4 +1,5 @@
 import { STORAGE_KEY, STORAGE_KEY_V2 } from './store.js';
+import { CONSENT_KEY } from './consent.js';
 
 // "Your data": everything the app keeps lives on this device. These helpers let a
 // person download a copy of it, or wipe it completely.
@@ -8,7 +9,7 @@ export const EXPORT_VERSION = 2;
 
 // Every localStorage key this app owns (current and old saves). Add new keys here so
 // deleteAllData covers them.
-const OWNED_KEYS = [STORAGE_KEY_V2, STORAGE_KEY];
+const OWNED_KEYS = [STORAGE_KEY_V2, STORAGE_KEY, CONSENT_KEY];
 
 /**
  * A JSON-ready copy of the user's data: every board with its entries, and the settings.

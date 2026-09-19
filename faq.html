@@ -9,6 +9,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#121a16">
   <link rel="stylesheet" href="styles.css">
+  <script type="module" src="src/page.js"></script>
 </head>
 <body>
   <main class="page">
@@ -51,8 +52,10 @@
       app.</p>
 
     <h2>Does DartPick cost anything?</h2>
-    <p>No, it’s free. In future it may show a small ad to help cover its running costs. If that happens,
-      the privacy policy will be updated first, and you’ll be asked before any ads are personalised.</p>
+    <p>No, it’s free. A small ad will help cover its running costs once Google AdSense approves the
+      site — there are none yet. Ads never appear over the board or next to the Throw button, and they’ll
+      be plain ads — not based on what you do — unless you say otherwise. Once they start, use
+      <strong>Privacy choices</strong> at the bottom of any page to change your answer at any time.</p>
 
     <h2>Who is DartPick for?</h2>
     <p>Anyone aged 13 or over. It isn’t designed for children.</p>
@@ -63,6 +66,10 @@
 
     <h2>I found a bug or have an idea</h2>
     <p>We’d love to hear it — see the <a href="contact.html">contact page</a>.</p>
+    <div class="ad-slot" data-ad-wrapper hidden>
+      <p class="ad-label">Advertisement</p>
+      <ins class="adsbygoogle" style="display:block;width:100%;height:250px"></ins>
+    </div>
   </main>
   <footer class="site-footer">
     <nav aria-label="Site">
@@ -72,6 +79,7 @@
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
       <a href="privacy.html">Privacy</a>
+      <button id="privacy-choices" class="link-btn" type="button" hidden>Privacy choices</button>
     </nav>
     <p>Made in Australia · Everything you add stays on your device.</p>
   </footer>

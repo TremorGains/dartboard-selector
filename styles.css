@@ -271,6 +271,19 @@ textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
 .dart-flight { fill: var(--dart-flight); stroke: var(--dart-flight-edge); }
 .dart-flight-line { stroke: var(--dart-flight-edge); }
 
+/* ---------- Ads ---------- */
+/* The slot stays hidden until an ad is actually requested, and hides itself again if
+   nothing fills it, so there is never an empty box or a hole in the layout. */
+.ad-slot { margin-top: 16px; }
+.ad-slot[hidden] { display: none; }
+.ad-label {
+  margin: 0 0 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+}
+/* The size is set inline on the <ins> itself, because AdSense reads it there before
+   requesting an ad — a responsive unit would otherwise fill the whole panel. */
+.page .ad-slot { margin: 28px 0 0; }
+
 /* ---------- Customise ---------- */
 .customise-card { max-height: 85vh; overflow-y: auto; }
 .theme-part { margin: 16px 0 0; padding: 0; border: 0; }
