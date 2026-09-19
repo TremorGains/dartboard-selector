@@ -5,9 +5,9 @@
 // consent.js says otherwise (npa = 0), and a slot that doesn't fill — no ad, an
 // ad blocker, an offline visit — gives its space back instead of leaving a hole.
 
-// Filled in once AdSense approves the site. Neither value is a secret.
-export const ADS_CLIENT = '';
-export const ADS_SLOT = '';
+// The site's AdSense ids. Neither value is a secret.
+export const ADS_CLIENT = 'ca-pub-1879223413593135';
+export const ADS_SLOT = '6885990393';
 
 const SCRIPT_BASE = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
 const FILL_TIMEOUT_MS = 4000;
